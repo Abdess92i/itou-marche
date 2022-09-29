@@ -223,6 +223,7 @@ class Tender(models.Model):
         related_name="tenders",
         on_delete=models.CASCADE,
         blank=True,
+        null=True,
     )
 
     siaes = models.ManyToManyField(
@@ -260,7 +261,8 @@ class Tender(models.Model):
         The slug field should be unique.
         """
         if not self.slug:
-            self.slug = f"{slugify(self.title)[:40]}-{str(self.author.company_name or '')}"
+            company_slug = str(self.author.company_name) if self.author else str(uuid4())[:4]
+            self.slug = f"{slugify(self.title)[:40]}-{company_slug}"
         if with_uuid:
             self.slug += f"-{str(uuid4())[:4]}"
 
@@ -324,7 +326,10 @@ class Tender(models.Model):
 
 @receiver(post_save, sender=Tender)
 def tender_post_save(sender, instance, **kwargs):
-    if not instance.validated_at:
+    import ipdb
+
+    ipdb.set_trace()
+    if instance.sectors and instance.perimeters and not instance.validated_at:
         instance.set_siae_found_list()
 
 
