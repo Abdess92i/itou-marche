@@ -326,10 +326,7 @@ class Tender(models.Model):
 
 @receiver(post_save, sender=Tender)
 def tender_post_save(sender, instance, **kwargs):
-    import ipdb
-
-    ipdb.set_trace()
-    if instance.sectors and instance.perimeters and not instance.validated_at:
+    if instance.sectors.exists() and instance.perimeters.exists() and not instance.validated_at:
         instance.set_siae_found_list()
 
 
