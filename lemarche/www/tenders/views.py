@@ -250,17 +250,18 @@ class TenderListView(LoginRequiredMixin, ListView):
         - show owned Tenders for other Users
         """
         user = self.request.user
-        queryset = Tender.objects.none()
+        qs = Tender.objects.none()
         if user.kind == User.KIND_SIAE and user.siaes:
-            # TODO: manage many siaes
             siaes = user.siaes.all()
             if siaes:
-                queryset = Tender.objects.filter_with_siaes(siaes)
+                qs = Tender.objects.filter_with_siaes(siaes)
         else:
-            queryset = Tender.objects.by_user(user).with_siae_stats()
+            qs = Tender.objects.by_user(user).with_siae_stats()
             if self.status:
-                queryset = queryset.filter(status=self.status)
-        return queryset.order_by_deadline_date()
+                qs = qs.filter(status=self.status)
+        qs = qs.prefetch_many_to_many().select_foreign_keys()
+        qs = qs.order_by_deadline_date()
+        return qs
 
     def get(self, request, status=None, *args, **kwargs):
         """
